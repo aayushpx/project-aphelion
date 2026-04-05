@@ -1,0 +1,26 @@
+# ESP-IDF build artifacts
+**/build/
+**/.cache/
+**/sdkconfig
+**/*.a
+**/*.bin
+**/*.map
+**/*.elf
+**/x509_crt_bundle.S
+**/ldgen_libraries
+**/ldgen_libraries.in
+**/flash_*
+**/flasher_args.json
+
+# Obsidian
+docs/.obsidian/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
