@@ -19,7 +19,7 @@ public:
     esp_err_t init();
     uint8_t who_am_i();
     esp_err_t wake_up();
-    esp_err_t read_accel();
+    esp_err_t read_raw();
 };
 
 extern "C" void app_main() {
@@ -39,8 +39,8 @@ extern "C" void app_main() {
             ESP_LOGI(TAG, "Sensor woken up successfully");
             
             while (1) {
-                imu.read_accel();
-                vTaskDelay(pdMS_TO_TICKS(500));
+                imu.read_raw();
+                vTaskDelay(pdMS_TO_TICKS(200));
             }
         } else {
             ESP_LOGE(TAG, "Failed to wake up sensor");
@@ -82,20 +82,30 @@ esp_err_t MPU6050::wake_up() {
     return i2c_master_transmit(_dev_handle, data, sizeof(data), -1);
 }
 
-esp_err_t MPU6050::read_accel() {
+esp_err_t MPU6050::read_raw() {
     uint8_t start_reg = 0x3B; // Accel X High register
-    uint8_t data[6];          // Buffers for X, Y, Z (High/Low bytes)
+    uint8_t data[14];          // 6A, 2T, 6G 
     
-    // Read 6 bytes starting from 0x3B
-    esp_err_t ret = i2c_master_transmit_receive(_dev_handle, &start_reg, 1, data, 6, -1);
+    // Read 14 bytes starting from 0x3B
+    esp_err_t ret = i2c_master_transmit_receive(_dev_handle, &start_reg, 1, data, 14, -1);
     
     if (ret == ESP_OK) {
-        // Shift and combine high/low bytes into signed 16-bit integers
-        int16_t ax = (data[0] << 8) | data[1];
-        int16_t ay = (data[2] << 8) | data[3];
-        int16_t az = (data[4] << 8) | data[5];
+        // Accelerometer bytes
+        int16_t ax = (int16_t)((data[0] << 8) | data[1]);
+        int16_t ay = (int16_t)((data[2] << 8) | data[3]);
+        int16_t az = (int16_t)((data[4] << 8) | data[5]);
         
-        ESP_LOGI(TAG, "ACCEL -> X: %d | Y: %d | Z: %d", ax, ay, az);
+        // Temp bytes
+        int16_t raw_temp = (int16_t)((data[6] << 8) | data[7]);
+        float temp = (raw_temp / 340.0) + 36.53;
+      
+        // Gyro bytes
+        int16_t gx = (int16_t)((data[8] << 8) | data[9]);
+        int16_t gy = (int16_t)((data[10] << 8) | data[11]);
+        int16_t gz = (int16_t)((data[12] << 8) | data[13]);
+        
+        ESP_LOGI(TAG, "ACCEL[X:%d Y:%d Z:%d] | GYRO[X:%d Y:%d Z:%d] | TEMP:%.1fC",
+                 ax, ay, az, gx, gy, gz, temp);
     }
     return ret;
 }
