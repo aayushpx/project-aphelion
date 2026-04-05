@@ -1,49 +1,31 @@
-# Rocket Telemetry System
+## Mission Control Suite  `/mission-control`
 
-A high-performance model rocket telemetry suite, featuring real-time sensor fusion, custom C++ drivers, and data visualisation.
+| Module | Status | Description |
+|---|---|---|
+| `propagator/` | In Progress | 3DOF RK4 trajectory propagator with drag and gravity models |
+| `state-estimator/` | Planned | Extended Kalman Filter for 6-DOF state estimation |
+| `monte-carlo/` | Planned | Dispersion analysis — 1000+ runs, landing footprint scatter plots |
+| `ground-station/` | Planned | Flask dashboard, MQTT telemetry receiver, real-time visualisation |
 
-## Current Progress
-- **Inertial Navigation:**
-    - Developed a custom **MPU6050 (Accelerometer/Gyroscope) Class**, using the latest **ESP-IDF v5.2 Master Bus driver**.
-    - Successfully implemented the I2C "Who Am I" handshake logic, to verify device communication and bus integrity.
-- **Atmospheric & Landing Systems:**
-    - Completed a custom DHT11 driver, for environmental monitoring during flight.
-    - Developed a Landing Radar Class for the HC-SR04, using microsecond-accurate timing via `esp_timer`.
-- **Hardware Engineering:**
-    - ESP32-based flight computer prototype established, and ready for flight testing.
-    - Implemented a Voltage Divider ($1k\Omega / 2.2k\Omega$), to safely interface 5V sensors with 3.3V logic pins.
-    - Integrated an Active Buzzer and LED, for proximity-based alerts during the landing phase.
+## Flight Computer Firmware  `/firmware`
+
+**Active development:** `firmware/flight-computer/`
+- Custom MPU6050 driver (ESP-IDF v5.2 Master Bus API, I2C at 400kHz)
+- I2C integrity validation via WHO_AM_I handshake (`0x68` signature)
+- Voltage divider ($1k\Omega / 2.2k\Omega$) for 5V→3.3V HC-SR04 logic level protection
+- StateMachine: `IDLE → PRE_FLIGHT → ACTIVE → DESCENT → LANDED`
+
+**Archived experiments:** `firmware/archive/` — early drivers and learning exercises
 
 ## Tech Stack
-- **Language:** Embedded C++ (using OOP design, for clean sensor abstraction).
-- **Framework:** ESP-IDF v5.2 (utilising the new Handle-based I2C API).
-- **Hardware:**
-    - **ESP32-WROOM** (The main "brain" of the flight computer).
-    - **MPU6050** (6-DOF IMU, for tracking orientation and G-forces).
-    - **HC-SR04** (Ultrasonic sensor, for the landing radar).
-    - **DHT11** (Environmental sensor, for atmospheric data).
 
-## Circuit Logic
+**Flight Computer:** Embedded C++ · ESP-IDF v5.2 · FreeRTOS · ESP32-WROOM  
+**Mission Control:** Python · NumPy/SciPy · Matplotlib · Paho MQTT · Flask  
+**Hardware:** ESP32-WROOM · MPU6050 · BMP280 · HC-SR04 · Raspberry Pi 5
 
-### I2C Communication (MPU6050)
-The IMU communicates via I2C at 100kHz. **Note:** Proper soldering of the header pins is absolutely essential for signal integrity. Loose connections introduce high resistance, which can cause bit-flipping and garbled data, leading to incorrect device IDs (like seeing `0x70` instead of the expected `0x68`).
+## Dev Logs
 
-
-
-### Voltage Divider (Landing Radar)
-The HC-SR04 returns a 5V signal, which is too "hot" for the ESP32 logic level. We use a voltage divider to protect the GPIO pins:
-
-$$V_{out} = V_{in} \cdot \frac{R_2}{R_1 + R_2}$$
-
-$$3.43V = 5V \cdot \frac{2200}{1000 + 2200}$$
-
-
-
-[Image of a voltage divider circuit diagram]
-
+Session notes in `/docs/dev-logs/` — tracking progress, debugging decisions, 
+and physics derivations as the project grows.
 
 ---
-
-### Maintenance & Debugging
-- **I2C Handshake:** Use `idf.py monitor` to check for the `0x68` signature. If the device ID returns `0xFF` or `0x70`, re-check the physical seating of the pins.
-- **Data Visualisation:** Plans are in place to stream this data over serial to a Python-based dashboard for real-time graphing.
