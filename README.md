@@ -14,6 +14,10 @@
 - I2C integrity validation via WHO_AM_I handshake (`0x68` signature)
 - Voltage divider ($1k\Omega / 2.2k\Omega$) for 5V→3.3V HC-SR04 logic level protection
 - StateMachine: `IDLE → PRE_FLIGHT → ACTIVE → DESCENT → LANDED`
+- Custom Vector3D class using zero dynamic memory allocation
+
+`mission-control/propagator/targeter.py`
+- iterative root-finding target to adjust launch angle
 
 **Archived experiments:** `firmware/archive/` — early drivers and learning exercises
 
