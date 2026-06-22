@@ -28,7 +28,7 @@ $$\mathbf{F}_g = \begin{bmatrix} 0 \\ 0 \\ -m \cdot g_0 \end{bmatrix}$$
 
 2. **Aerodynamic Drag Vector** ($\mathbf{F}_D$): Directed exactly opposite to the instantaneous velocity unit vector ($\hat{v}$). It references an exponential atmospheric density decay model based on altitude:
 
-$$\mathbf{F}_D = -\frac{1}{2} \rho(z) ||\mathbf{v}||^2 C_D A \cdot \left(\frac{\mathbf{v}}{||\mathbf{v}||}\right)$$
+$$\mathbf{F}_D = -\frac{1}{2} \rho(z) \|\mathbf{v}\|^2 C_D A \cdot \left(\frac{\mathbf{v}}{\|\mathbf{v}\|}\right)$$
 
  $$\rho(z) = \rho_0 \cdot e^{-z/h_{scale}}$$  
 
