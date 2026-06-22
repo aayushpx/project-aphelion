@@ -30,7 +30,7 @@ $$\mathbf{F}_g = \begin{bmatrix} 0 \\ 0 \\ -m \cdot g_0 \end{bmatrix}$$
 
 $$\mathbf{F}_D = -\frac{1}{2} \rho(z) |\mathbf{v}|^2 C_D A \cdot \left(\frac{\mathbf{v}}{|\mathbf{v}|}\right)$$
 
-$$\rho(z) = \rho_0 \cdot e^{-\frac{z}{h_{scale}}}$$   
+ $$\rho(z) = \rho_0 \cdot e^{-z/h_{scale}}$$  
 
 3. **Mass Depletion Curve ($\dot{m}$):** During the powered phase ($t < 3.5\text{s}$), vehicle mass updates continuously as propellant is exhausted ($m(t) = m_{dry} + m_{prop} - \dot{m}t$). Because the nominal thrust remains constant while the vehicle mass strips away, the rocket experiences an escalating thrust-to-weight ratio, causing a characteristic spike in acceleration immediately prior to motor burnout.
 
