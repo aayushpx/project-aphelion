@@ -7,6 +7,10 @@ output_dir = os.path.join(os.path.dirname(__file__), "..", "data")
 os.makedirs(output_dir, exist_ok=True)
 csv_filename = os.path.join(output_dir, "nominal_trajectory.csv")
 
+script_dir = os.path.dirname(__file__)
+media_plots_dir = os.path.join(script_dir, "..", "..", "..", "media", "plots")
+os.makedirs(media_plots_dir, exist_ok=True)
+
 class FlightPropagator:
     """
     3DOF Trajectory Propagator for suborbital launch vehicles.
@@ -162,23 +166,26 @@ history, time = sim.propagate(initial_flight_vector, dt=0.01, max_duration=40.0)
 plt.figure(figsize=(12, 5))
 
 # Plot 1: Altitude Over Time
-plt.subplot(1, 2, 1)
-plt.plot(time, history[:, 2], 'b-', label="Altitude (z)")
+plt.figure(figsize=(6, 4))
+plt.plot(time, history[:, 2], 'b-', linewidth=2)
 plt.ylabel("Altitude (meters)")
 plt.xlabel("Time (seconds)")
-plt.title("Altitude Profile")
-plt.grid(True)
+plt.title("Flight Telemetry: Altitude vs Time")
+plt.grid(True, linestyle="--", alpha=0.6)
+plt.savefig(os.path.join(media_plots_dir, "altitude_profile.png"), dpi=300, bbox_inches='tight')
+plt.close()
 
 # Plot 2: Range Profile (2D Flight Path Profile)
-plt.subplot(1, 2, 2)
-plt.plot(history[:, 0], history[:, 2], 'g-', label="Trajectory Profile")
+plt.figure(figsize=(6, 4))
+plt.plot(history[:, 0], history[:, 2], 'g-', linewidth=2)
 plt.ylabel("Altitude (meters)")
 plt.xlabel("Downrange Distance (meters)")
-plt.title("2DOF Spatial Profile (X vs Z)")
-plt.grid(True)
+plt.title("Mission Profile: 2DOF Spatial Trajectory")
+plt.grid(True, linestyle="--", alpha=0.6)
+plt.savefig(os.path.join(media_plots_dir, "spatial_profile.png"), dpi=300, bbox_inches='tight')
+plt.close()
 
-plt.tight_layout()
-plt.show()
+print(f"\n[SUCCESS] Portfolio assets saved to: {os.path.abspath(media_plots_dir)}")
 
 print(f"Compiling flight datasets... Writing to {csv_filename}")
 

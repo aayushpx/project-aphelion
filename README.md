@@ -7,6 +7,37 @@
 | `monte-carlo/` | Planned | Dispersion analysis — 1000+ runs, landing footprint scatter plots |
 | `ground-station/` | Planned | Flask dashboard, MQTT telemetry receiver, real-time visualisation |
 
+### 3DOF Trajectory Propagator Engine
+
+The core analytical engine of the Mission Control Suite predicts suborbital flight profiles by evaluating instantaneous flight dynamics. Instead of assuming constant acceleration, the solver evaluates changing force boundaries across discrete time steps ($\Delta t = 0.01\text{s}$) using a 4th-Order Runge-Kutta numerical integrator.
+
+For a given kinematic state vector $\mathbf{x} = [x, y, z, v_x, v_y, v_z]^T$, the solver computes four distinct intermediate derivative vectors ($k_1, k_2, k_3, k_4$) to approximate the state update with high-order local accuracy ($0(\Delta t^5)$):
+
+$$k_1 = f(t, \mathbf{x})$$
+$$k_2 = f\left(t + \frac{\Delta t}{2}, \mathbf{x} + \frac{\Delta t}{2}k_1\right)$$
+$$k_2 = f\left(t + \frac{\Delta t}{2}, \mathbf{x} + \frac{\Delta t}{2}k_2\right)$$
+$$k_4 = f(t + \Delta t, \mathbf{x} + \Delta t k_3)$$
+
+$$\mathbf{x}_{n+1} = \mathbf{x}_n + \frac{\Delta t}{6}(k_1 + 2k_2 + 2k_3 + k_4)$$
+
+#### Active Vector Force Models
+1. Gravitational Vector ($\mathbf{F}_g$): Acts downwards along the local vertical axis: $\mathbf{F}_g = [0, 0, -m \cdot g_0]^T$.
+2. Aerodynamic Drag Vector ($\mathbf{F}_D$): Directed exactly opposite to the instantaneous velocity unit vector ($\hat{\mathbf{v}}$). It references an exponential atmospheric density decay model based on altitude:
+   $$\mathbf{F}_D = -\frac{1}{2} \rho(z) \|\mathbf{v}\|^2 C_D A \cdot \left(\frac{\mathbf{v}}{\|\mathbf{v}\|}\right) \quad \text{where} \quad \rho(z) = \rho_0 e^{-\frac{z}{h_{scale}}}$$
+3. Mass Depletion Curve ($\dot{m}$): During the powered phase ($t < t_{burn}$), vehicle mass updates continuously as propellant is exhausted. The mass lost results in thrust-to-weight ratio, causing a characteristic spike in acceleration immediately prior to motor burnout.
+
+---
+
+### Verification and Operational Profiles
+
+Below are the analytical outputs generated from a baseline sounding rocket profile configuration (Dry Mass: 1.0 kg, Propellant: 0.3 kg, Nominal Thrust: 80 N, Burn Time: 3.5s) launches at an initial pitch angle of $85^\circ$.
+| 1. Altitude Telemetry Matrix | 2. Downrange Spatial Profile (X vs Z) |
+|---|---|
+| ![Altitude Profile](media/plots/altitude_profile.png) | ![Spatial Profile](media/plots/spatial_profile.png) |
+| **Analysis:** Tracks transition from active booster burn to a ballistic coast phase. Peak operational apogee of **~700 meters** is achieved at $t \approx 11.5\text{s}$. | **Analysis:** Maps the actual 2D path across the range. Tilted lift-off vectors result in a terminal impact coordinate **~460 meters** downrange from the launch pad. |
+
+---
+
 ## Flight Computer Firmware  `/firmware`
 
 **Active development:** `firmware/flight-computer/`
