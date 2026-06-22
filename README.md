@@ -26,8 +26,9 @@ $$\mathbf{x}_{n+1} = \mathbf{x}_n + \frac{\Delta t}{6}(k_1 + 2k_2 + 2k_3 + k_4)$
    $$\mathbf{F}_g = \begin{bmatrix} 0 \\ 0 \\ -m \cdot g_0 \end{bmatrix}$$
 
 2. **Aerodynamic Drag Vector ($\mathbf{F}_D$):** Directed exactly opposite to the instantaneous velocity unit vector ($\hat{\mathbf{v}}$). It references an exponential atmospheric density decay model based on altitude:
-   $$\mathbf{F}_D = -\frac{1}{2} \rho(z) |\mathbf{v}|^2 C_D A \cdot \left(\frac{\mathbf{v}}{|\mathbf{v}|}\right)$$
-   $$\rho(z) = \rho_0 \cdot e^{-\frac{z}{h_{scale}}}$$
+    $$\mathbf{F}_D = -\frac{1}{2} \rho(z) \|\mathbf{v}\|^2 C_D A \cdot \left(\frac{\mathbf{v}}{\|\mathbf{v}\|}\right)$$
+    $$\rho(z) = \rho_0 \cdot e^{-\frac{z}{h_{scale}}}$$
+   
 
 3. **Mass Depletion Curve ($\dot{m}$):** During the powered phase ($t < 3.5\text{s}$), vehicle mass updates continuously as propellant is exhausted ($m(t) = m_{dry} + m_{prop} - \dot{m}t$). Because the nominal thrust remains constant while the vehicle mass strips away, the rocket experiences an escalating thrust-to-weight ratio, causing a characteristic spike in acceleration immediately prior to motor burnout.
 
