@@ -1,6 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import math
+import os
+import csv
+
+output_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+os.makedirs(output_dir, exist_ok=True)
+csv_filename = os.path.join(output_dir, "nominal_trajectory.csv")
 
 class FlightPropagator:
     """
@@ -174,3 +179,19 @@ plt.grid(True)
 
 plt.tight_layout()
 plt.show()
+
+print(f"Compiling flight datasets... Writing to {csv_filename}")
+
+with open(csv_filename, mode="w", newline="") as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerow(["time_s", "pos_x_m", "pos_y_m",
+                     "alt_z_m", "vel_x_mps", "vel_y_mps",
+                     "vel_z_mps"])
+    for t, state in zip(time, history):
+        writer.writerow([
+            f"{t:.4f}",
+            f"{state[0]:.4f}", f"{state[1]:.4f}", f"{state[2]:.4f}",
+            f"{state[3]:.4f}", f"{state[4]:.4f}", f"{state[4]:.4f}"
+        ])
+
+print("Data logging sequence complete. Flight baseline stored successfully")
