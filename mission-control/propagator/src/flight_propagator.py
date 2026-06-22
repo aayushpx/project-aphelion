@@ -3,73 +3,174 @@ import matplotlib.pyplot as plt
 import math
 
 class FlightPropagator:
-    def __init__(self, mass, area, cd):
-        self.mass = mass  # kg
-        self.area = area  # m^2
-        self.cd = cd      # Drag coefficient
-        self.g = 9.80665  # m/s^2
+    """
+    3DOF Trajectory Propagator for suborbital launch vehicles.
+    Implements 4th-order Runge-Kutta numerical integration with
+    altitude-dependent atmospheric density and time-varying mass profiles.
+    """
+    def __init__(self, dry_mass, propellant_mass, area,
+                 cd, thrust_nominal, burn_time):
+        self.dry_mass = dry_mass  # kg (structural mass)
+        self.prop_mass_init = propellant_mass  # kg (usable fuel)
+        self.area = area  # m^2 (cross-sectional area)
+        self.cd = cd      # Drag coefficient (dimensionless)
+        self.thrust_nominal = thrust_nominal  # N
+        self.burn_time = burn_time  # s
+
+        # Physical constants
+        self.g0 = 9.80665  # standard gravity (m/s^2)
+
+        # Mass flow rate (assuming constant thrust and burn time)
+        self.mdot = self.prop_mass_init / self.burn_time if self.burn_time > 0 else 0.0
+
+
+    def get_mass(self, t):
+        """Calculates instantaneous vehicle mass due to propellant depletion."""
+        if t < self.burn_time:
+            return self.dry_mass + self.prop_mass_init - (self.mdot * t)
+        return self.dry_mass
 
     def get_density(self, altitude):
-        """Standard Atmosphere Model"""
-        rho0 = 1.255
-        if altitude < 0: return rho0
-        h_scale = 8500
-        # formula: rho = rho0 * e^(-h / h_scale)
-        rho = rho0 * np.exp(-altitude / 8500)  
-        return rho
+        """Barometric density model using a standard scale height."""
+        rho0 = 1.255 # Standard sea-level density (kg/m^3)
+        h_scale = 8500.0 # Scale height (m)
+        if altitude < 0: 
+            return rho0
+        return rho0 * np.exp(-altitude / h_scale)  
 
     def derivatives(self, state, t):
         """
-        Calculates the instantaneous rates of change: [velocity, acceleration]
-        'state' contains [x, y, z, vx, vy, vz]
+        Computes the state derivative vector [velocity, acceleration].
+
+        State vector map:
+            state[0:3] = position (x, y, z) in meters
+            state[3:6] = velocity (vx, vy, vz) in m/s
         """
         x, y, z, vx, vy, vz = state
-        
-        velocity = np.array([vx, vy, vz])
-        speed = np.linalg.norm(velocity) # total speed magnitude
-        f_gravity = np.array([0, 0, -self.mass * self.g])
+        vel = np.array([vx, vy, vz])
+        speed = np.linalg.norm(vel) # total speed magnitude
+        current_mass = self.get_mass(t)
 
-        # Drag
-        if speed > 0:
+        # Gravitational force vector
+        f_gravity = np.array([0.0, 0.0, -current_mass * self.g0])
+
+        # Aerodynamic drag force vector
+        if speed > 1e-6:
             rho = self.get_density(z)
             drag_mag = 0.5 * rho * (speed**2) * self.cd * self.area
-            f_drag = -drag_mag * (velocity / speed)
+            f_drag = -drag_mag * (vel / speed)
 
         else:
-            f_drag = np.array([0, 0, 0])
-
-        total_force = f_gravity + f_drag
-        accel = total_force / self.mass
-
-        return np.concatenate([velocity, accel])
+            f_drag = np.zeros(3)
 
 
-    def propagate(self, initial_state, dt, duration):
-        """The main loop using RK4 integration"""
-        t_arr = np.arange(0, duration, dt)
-        history = [initial_state]
-        current_state = np.array(initial_state)
+        # Propulsive thrust force vector
+        if t < self.burn_time:
+            if speed > 1e-6:
+                f_thrust = self.thrust_nominal * (vel / speed)
+            else: 
+                f_thrust = np.array([0.0, 0.0, self.thrust_nominal])
+        else:
+            f_thrust = np.zeros(3)
 
-        for t in t_arr[:-1]:
+        # Equations of motion: Sum(F) = m * a
+        total_force = f_gravity + f_drag + f_thrust
+        accel = total_force / current_mass
+
+        return np.concatenate([vel, accel])
+
+
+    def propagate(self, initial_state, dt, max_duration = 100.0):
+        """Executes RK4 integration across the flight envelope"""
+        t_arr = [0.0]
+        history = [np.array(initial_state, dtype = float)]
+        current_state = np.array(initial_state, dtype = float)
+        t = 0.0
+
+        while t < max_duration:
             k1 = self.derivatives(current_state, t)
             k2 = self.derivatives(current_state + (dt/2) * k1, t + dt/2)
             k3 = self.derivatives(current_state + (dt/2) * k2, t + dt/2)
             k4 = self.derivatives(current_state + dt * k3, t + dt)
             
-            current_state = current_state + (dt/6) * (k1 + 2*k2 + 2*k3 +
-                                                      k4)
+            current_state += (dt/6) * (k1 + 2*k2 + 2*k3 + k4)
+            t += dt
 
-            if current_state[2] < 0:
+            # Record state
+            history.append(current_state.copy())
+            t_arr.append(t)
+
+            # Terminate propagation is vehicle impacts surface
+            if current_state[2] < -1e-3:
                 break
 
-            history.append(current_state)
+        # --- Post-Flight Data Clean-Up ---
+        history_arr = np.array(history)
+        time_arr = np.array(t_arr)
 
-        return np.array(history), t_arr[:len(history)]
+        # If the last recorded point dipped below the ground, 
+        # interpolate the impact state
+        if history_arr[-1, 2] < 0.0 and len(history_arr) > 1:
+            last_state = history_arr[-2]
+            overshoot_state = history_arr[-1]
 
-sim = FlightPropagator(mass = 1.0, area = 0.01, cd = 0.5)
-history, time = sim.propagate([0,0,0, 0,0,100], dt = 0.01, duration = 20)
+            # Find the fraction of the timestep where z crossed exactly 0.0
+            # fraction = (0 - z_prev) / (z_curr - z_prev)
+            z_prev = last_state[2]
+            z_curr = overshoot_state[2]
+            fraction = (0.0 - z_prev) / (z_curr - z_prev)
 
-plt.plot(time, history[:, 2])
-plt.ylabel("Altitude (m)")
-plt.xlabel("Time (s)")
+            # Linearly interpolate time and the state vector
+            t_impact = time_arr[-2] + fraction * dt
+            state_impact = last_state + fraction * (overshoot_state - last_state)
+            state_impact[2] = 0.0  # Explicitly snap altitude to exactly 0
+
+            # Replace the overshoot point with the precise impact point
+            history_arr[-1] = state_impact
+            time_arr[-1] = t_impact
+
+        return history_arr, time_arr
+
+sim = FlightPropagator(
+    dry_mass = 1.0,
+    propellant_mass = 0.3,
+    area = 0.008,
+    cd = 0.45,
+    thrust_nominal = 80.0,
+    burn_time = 3.5
+)
+
+launch_angle_deg = 85.0
+launch_angle_rad = np.radians(launch_angle_deg)
+
+rail_speed = 0.1 # m/s
+init_vx = rail_speed * np.cos(launch_angle_rad)
+init_vz = rail_speed * np.sin(launch_angle_rad) 
+
+# Initial state vector: [x, y, z, vx, vy, vz]
+initial_flight_vector = [0.0, 0.0, 0.0, init_vx, 0.0, init_vz]
+
+# Run the propagator
+history, time = sim.propagate(initial_flight_vector, dt=0.01, max_duration=40.0)
+
+# --- Clear Multi-Plot Telemetry Dashboard ---
+plt.figure(figsize=(12, 5))
+
+# Plot 1: Altitude Over Time
+plt.subplot(1, 2, 1)
+plt.plot(time, history[:, 2], 'b-', label="Altitude (z)")
+plt.ylabel("Altitude (meters)")
+plt.xlabel("Time (seconds)")
+plt.title("Altitude Profile")
+plt.grid(True)
+
+# Plot 2: Range Profile (2D Flight Path Profile)
+plt.subplot(1, 2, 2)
+plt.plot(history[:, 0], history[:, 2], 'g-', label="Trajectory Profile")
+plt.ylabel("Altitude (meters)")
+plt.xlabel("Downrange Distance (meters)")
+plt.title("2DOF Spatial Profile (X vs Z)")
+plt.grid(True)
+
+plt.tight_layout()
 plt.show()
