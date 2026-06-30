@@ -26,7 +26,7 @@ extern "C" void app_main() {
     MPU6050 imu(0x68);
     
     if (imu.init() != ESP_OK) {
-        ESP_LOGE(TAG, "I2C Initialization failed");
+        ESP_LOGE(TAG, "I2C Initialization failed!");
         return;
     }
 
