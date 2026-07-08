@@ -198,7 +198,7 @@ with open(csv_filename, mode="w", newline="") as csv_file:
         writer.writerow([
             f"{t:.4f}",
             f"{state[0]:.4f}", f"{state[1]:.4f}", f"{state[2]:.4f}",
-            f"{state[3]:.4f}", f"{state[4]:.4f}", f"{state[4]:.4f}"
+            f"{state[3]:.4f}", f"{state[4]:.4f}", f"{state[5]:.4f}"
         ])
 
 print("Data logging sequence complete. Flight baseline stored successfully")
