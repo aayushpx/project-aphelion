@@ -2,6 +2,7 @@
 **/build/
 **/.cache/
 **/sdkconfig
+**/sdkconfig.old
 **/*.a
 **/*.bin
 **/*.map
@@ -21,7 +22,36 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
+*.egg
+dist/
+build/
+*.whl
+
+# Pytest / Ruff
+.pytest_cache/
+.ruff_cache/
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated simulation output (not reference data)
+# Reference CSVs in scenarios/data/ are tracked
+*.csv.tmp
+
+# Private agent configuration (OpenCode skills, agents, config)
+.opencode/
+
+# Secrets and credentials
+.env
+.env.*
+*.secret
+*.key
+*.pem
+secrets/
+credentials.json
+service-account*.json
+
+# Simulation scratch / local state
+*.npz
+data/*.csv.tmp
