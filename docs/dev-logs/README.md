@@ -7,12 +7,12 @@ This directory contains the engineering development journal for Project Aphelion
 ```
 dev-logs/
 ├── 2025/
-│   ├── 2025-10 — The Beginning.md
-│   ├── 2025-10 — Session 2.md
-│   ├── 2025-11 — Session 3.md
+│   ├── 2025-10 - The Beginning.md
+│   ├── 2025-10 - Session 2.md
+│   ├── 2025-11 - Session 3.md
 │   └── ...
 ├── 2026/
-│   ├── 2026-02 — Session 8.md
+│   ├── 2026-02 - Session 8.md
 │   └── ...
 └── README.md
 ```
@@ -20,12 +20,12 @@ dev-logs/
 ## Naming Convention
 
 ```
-YYYY-MM — <Title>.md
+YYYY-MM - <Title>.md
 ```
 
 Examples:
-- `2025-10 — The Beginning.md`
-- `2026-09 — Project Aphelion.md`
+- `2025-10 - The Beginning.md`
+- `2026-09 - Project Aphelion.md`
 
 ## Historical Migration
 

@@ -1,23 +1,26 @@
 # Project Aphelion
 
-A flight-dynamics and spacecraft mission simulation/testbed platform.
+A flight dynamics testbed for trajectory simulation, numerical methods, and embedded flight hardware.
 
-Project Aphelion is a suborbital-to-orbital flight dynamics testbed combining a Python numerical simulation engine with ESP32 embedded hardware. It is designed to demonstrate software engineering, aerospace engineering, numerical methods, and hardware integration as a continuously evolving engineering project.
+Project Aphelion is an evolving engineering project. It currently combines a Python suborbital trajectory simulator with an ESP32 flight computer prototype. The long-term plan runs from suborbital propagation through orbital mechanics, telemetry, and hardware-in-the-loop testing, but the near-term work is about getting the numerical core solid and validated.
 
 ## Current Status
 
-**Level 0 — Foundations** (September 2026)
+**Level 0: Foundations** (September 2026)
 
-The project currently provides:
+What exists now:
 
-- A validated 3DOF suborbital trajectory propagator (RK4 integration)
-- Atmospheric drag and mass depletion modelling
-- YAML-based scenario configuration
-- A clean Python package (`aphelion`) with CLI
-- 31 unit and validation tests
-- An ESP32 MPU6050 IMU driver (working hardware prototype)
+- A 3DOF suborbital trajectory propagator using RK4 integration
+- Atmospheric drag and propellant mass depletion modelling
+- YAML scenario configuration
+- A Python package (`aphelion`) with a CLI
+- A unit and validation test suite
+- CI on GitHub Actions (Python 3.10 through 3.13)
+- An ESP32 MPU6050 IMU driver, working on physical hardware
 
-### Trajectory Statistics (Baseline Scenario)
+The propagator has validation tests against analytical solutions, but treat those as a work in progress. Full propagator validation is the Level 1 milestone.
+
+### Baseline Scenario Statistics
 
 | Metric | Value |
 |---|---|
@@ -25,10 +28,11 @@ The project currently provides:
 | Flight time | ~25 s |
 | Downrange distance | ~476 m |
 
+These come from `scenarios/suborbital-baseline.yaml`, which describes a small suborbital flight.
+
 ## Quick Start
 
 ```bash
-# Install the package
 pip install -e ".[dev]"
 
 # Run the baseline simulation
@@ -48,10 +52,9 @@ ruff check .
 
 ```
 aphelion/                  # Python package
-├── core/                  # Physical constants, types
-│   └── constants.py       # G, mu, R_Earth, etc.
-├── dynamics/              # Physics engines
-│   ├── integrators.py     # RK4 numerical integrator
+├── core/                  # Physical constants (constants.py)
+├── dynamics/              # Numerical + propagator code
+│   ├── integrators.py     # RK4 integrator
 │   └── suborbital.py      # 3DOF suborbital propagator
 └── __main__.py            # CLI entry point
 
@@ -61,9 +64,7 @@ firmware/                  # ESP32 embedded code
   ├── flight-computer/
   │   └── mpu6050-driver/  # Working MPU6050 I2C driver
   └── archive/             # Historical learning exercises
-docs/                      # Documentation
-  ├── adr/                 # Architecture Decision Records
-  └── dev-logs/            # Engineering development journal
+docs/                      # Docs, ADRs, dev logs
 media/                     # Plots and demo assets
 ```
 
@@ -71,45 +72,43 @@ See [docs/architecture.md](docs/architecture.md) for details.
 
 ## Propagator
 
-The core propagator is a 3DOF (three-degrees-of-freedom) trajectory model for suborbital launch vehicles:
+The propagator is a 3DOF trajectory model for suborbital launch vehicles:
 
-- **Integration:** 4th-order Runge-Kutta (RK4), fixed step
-- **Gravity:** Constant g0 (flat-Earth approximation)
-- **Atmosphere:** Exponential density model (scale height)
-- **Drag:** Quadratic aerodynamic drag with configurable Cd and area
-- **Thrust:** Constant thrust during powered phase, aligned along velocity
-- **Mass:** Linear propellant depletion during burn
+- **Integration:** fixed-step 4th-order Runge-Kutta
+- **Gravity:** constant g0, flat-Earth approximation
+- **Atmosphere:** exponential density model
+- **Drag:** quadratic aerodynamic drag with configurable Cd and area
+- **Thrust:** constant thrust during the powered phase, aligned with velocity
+- **Mass:** linear propellant depletion during the burn
 
 ### Limitations
 
-These are known and intentional for the current development level:
+These are intentional for the current level:
 
-- Flat-Earth geometry (valid for < 100 km altitude)
+- Flat-Earth geometry (valid below ~100 km altitude)
 - Constant gravitational field (no 1/r² variation)
 - No wind model
-- Thrust aligned along velocity vector (not body frame)
-- No rotational dynamics (3DOF, not 6DOF)
+- Thrust aligned with the velocity vector, not the body frame
+- 3DOF, no rotational dynamics
 - No orbital mechanics yet
 
 ## Hardware Prototype
 
-An ESP32-WROOM development board with MPU6050 IMU:
+An ESP32-WROOM board with an MPU6050 IMU:
 
-- I2C bus at 100 kHz (SDA: GPIO 21, SCL: GPIO 22)
+- I2C at 100 kHz (SDA: GPIO 21, SCL: GPIO 22)
 - Reads 6-axis accelerometer + gyroscope + temperature
-- Verified on physical hardware (soldered connections)
+- Verified on physical hardware
 
-This is a **learning prototype**, not flight software. See `firmware/flight-computer/mpu6050-driver/`.
-
-See [docs/hardware.md](docs/hardware.md) for hardware interfaces and integration targets.
+This is a learning prototype, not flight software. It is the first piece of the flight computer, far from the eventual telemetry and ground-station system. See `firmware/flight-computer/mpu6050-driver/` and [docs/hardware.md](docs/hardware.md).
 
 ## Validation
 
-Physics validation tests verify numerical accuracy against analytical solutions:
+The physics tests check the propagator against analytical results:
 
 - Vertical free-fall: velocity and altitude match v(t) = v₀ - gt and h(t) = v₀t - ½gt²
-- RK4 convergence: error reduces at 4th-order rate
-- Energy conservation: specific mechanical energy conserved in ballistic flight
+- RK4 convergence: error drops at the expected 4th-order rate
+- Energy conservation: specific mechanical energy is conserved in ballistic flight
 
 All tests pass with relative tolerance ≤ 0.1%.
 
@@ -117,12 +116,12 @@ All tests pass with relative tolerance ≤ 0.1%.
 
 | Level | Description | Status |
 |---|---|---|
-| 0 | Project foundations, package, tests, CI | **Current** |
+| 0 | Foundations: package, tests, CI | **Current** |
 | 1 | Validated suborbital propagator | Planned |
 | 2 | Two-body orbital propagator | Planned |
 | 3 | Perturbation models (J2, drag, SRP) | Planned |
-| 4 | Maneuver & mission modeling | Planned |
-| 5 | Telemetry protocol & ground station | Planned |
+| 4 | Maneuver and mission modelling | Planned |
+| 5 | Telemetry protocol and ground station | Planned |
 | 6 | Mission control visualization | Planned |
 | 7 | Attitude dynamics | Planned |
 | 8 | Extended Kalman filter | Planned |

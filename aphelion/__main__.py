@@ -103,7 +103,7 @@ def main():
     """CLI entry point."""
     parser = argparse.ArgumentParser(
         prog="aphelion",
-        description="Project Aphelion — Flight dynamics simulation",
+        description="Project Aphelion: flight dynamics simulation",
     )
     parser.add_argument(
         "--scenario",

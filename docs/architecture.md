@@ -6,7 +6,7 @@ Project Aphelion separates concerns along responsibility boundaries. Each direct
 
 ## Package Structure
 
-### `aphelion/` — Python Package
+### `aphelion/`: the Python package
 
 The simulation engine.
 
@@ -25,11 +25,11 @@ aphelion/
 
 **Dependency direction:** `__main__` → `dynamics` → `core`. No circular dependencies.
 
-### `scenarios/` — Simulation Configurations
+### `scenarios/`: simulation configurations
 
 YAML files defining vehicle parameters, initial conditions, and simulation settings. Loaded by the CLI. Reproducible.
 
-### `tests/` — Test Suite
+### `tests/`: the test suite
 
 ```
 tests/
@@ -37,7 +37,7 @@ tests/
 └── validation/          # Physics validation against analytical solutions
 ```
 
-### `firmware/` — ESP32 Embedded Code
+### `firmware/`: ESP32 embedded code
 
 ```
 firmware/
@@ -48,14 +48,14 @@ firmware/
 
 The firmware directory is separate from the Python package. They communicate through a future telemetry protocol (Level 5+).
 
-### `docs/` — Documentation
+### `docs/`: documentation
 
-- `architecture.md` — This file
-- `hardware.md` — Hardware inventory and capability matrix
-- `adr/` — Architecture Decision Records
-- `dev-logs/` — Engineering development journal
+- `architecture.md`: this file
+- `hardware.md`: hardware inventory and capability matrix
+- `adr/`: architecture decision records
+- `dev-logs/`: engineering development journal
 
-### `media/` — Generated Assets
+### `media/`: generated assets
 
 Plots and demo images. The `plots/` subdirectory contains reference outputs from the baseline scenario.
 

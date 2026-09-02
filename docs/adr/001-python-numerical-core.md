@@ -23,5 +23,5 @@ Use **Python** with NumPy/SciPy for the numerical core.
 
 **Mitigation:**
 - Future performance-critical kernels can be rewritten in Rust and called via Python bindings
-- The firmware layer is C++ (ESP-IDF) — this decision only affects the simulation side
+- The firmware layer is C++ (ESP-IDF); this decision only affects the simulation side
 - For current scales (suborbital trajectories), Python performance is adequate

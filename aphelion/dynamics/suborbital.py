@@ -108,7 +108,7 @@ class SuborbitalPropagator:
 
         State vector layout:
             state[0] = x (downrange, m)
-            state[1] = y (cross-range, m) — unused in 2D
+            state[1] = y (cross-range, m); unused in 2D
             state[2] = z (altitude, m)
             state[3] = vx (downrange velocity, m/s)
             state[4] = vy (cross-range velocity, m/s)
