@@ -36,7 +36,7 @@ These come from `scenarios/suborbital-baseline.yaml`, which describes a small su
 pip install -e ".[dev]"
 
 # Run the baseline simulation
-aphelion run --scenario scenarios/suborbital-baseline.yaml
+aphelion --scenario scenarios/suborbital-baseline.yaml
 
 # Or equivalently
 python -m aphelion --scenario scenarios/suborbital-baseline.yaml
