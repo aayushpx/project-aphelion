@@ -1,5 +1,6 @@
 # Project Aphelion — Baseline Suborbital Scenario
-# Reproduces the original flight_propagator.py baseline configuration.
+# Reproduces the baseline configuration used by the original standalone
+# propagator (superseded by the aphelion/ package in Level 0).
 
 vehicle:
   dry_mass: 1.0          # kg
